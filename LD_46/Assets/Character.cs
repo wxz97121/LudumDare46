@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class Character : MonoBehaviour
 {
@@ -8,11 +9,14 @@ public class Character : MonoBehaviour
     public float MoveForce = 3;
     public float MouseForce = 100;
     public float RotateForce = 3;
+    public Joint2D[] AllJoint2D;
+    public float HP=10;
     private void Awake()
     {
         m_Rigid = GetComponent<Rigidbody2D>();
+        AllJoint2D = GameObject.FindObjectsOfType<Joint2D>();
     }
-    private void FixedUpdate()
+    void GetInputAndMove()
     {
         float y = Input.GetAxis("Vertical");
         float x = Input.GetAxis("Horizontal");
@@ -37,10 +41,25 @@ public class Character : MonoBehaviour
         {
             m_Rigid.AddTorque(RotateForce);
         }
-        if (Input.GetKey(KeyCode.K))
+        if (Input.GetKey(KeyCode.L))
         {
             m_Rigid.AddTorque(-1 * RotateForce);
         }
-
+    }
+    private void FixedUpdate()
+    {
+        if (HP <= 0) StartCoroutine(Defeat());
+        GetInputAndMove();
+    }
+    IEnumerator Defeat()
+    {
+        Time.timeScale = 0.1f;
+        foreach (var joint2d in AllJoint2D)
+        {
+            joint2d.breakForce = 0;
+            joint2d.breakTorque = 0;
+        }
+        yield return new WaitForSeconds(0.1f);
+        SceneManager.LoadScene(0);
     }
 }
