@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 public class SingletonBase<T> : MonoBehaviour where T : MonoBehaviour
 {
     private static object _singletonLock = new object();
@@ -50,13 +51,18 @@ public class Character : SingletonBase<Character>
     public float RotateForce = 3;
     public Joint2D[] AllJoint2D;
     public float HP = 10;
+    public float PullCD = 5;
+    public Rigidbody2D RopeEnd;
     bool isDead = false;
+    public float PullVelocity = 3;
+    public Image SkillImage;
     private void Awake()
     {
         Time.timeScale = 1;
         m_Rigid = GetComponent<Rigidbody2D>();
         AllJoint2D = FindObjectsOfType<Joint2D>();
     }
+    float LastPullTime = -100;
     void GetInputAndMove()
     {
         float y = Input.GetAxis("Vertical");
@@ -87,28 +93,33 @@ public class Character : SingletonBase<Character>
             //m_Rigid.AddForce((MousePos - m_Rigid.position).normalized * MouseForce, ForceMode2D.Impulse);
             m_Rigid.velocity = new Vector2(x, y);
         }
+        if (Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.Joystick1Button0))
+        {
+            if (Time.unscaledTime - LastPullTime > PullCD)
+            {
+                LastPullTime = Time.unscaledTime;
+                RopeEnd.AddForce((m_Rigid.position - RopeEnd.position).normalized * PullVelocity, ForceMode2D.Impulse);
+            }
+        }
 
-        if (Input.GetKey(KeyCode.I))
-        {
-            m_Rigid.AddForce(transform.right * MoveForce, 0);
-        }
-        if (Input.GetKey(KeyCode.K))
-        {
-            m_Rigid.AddForce(transform.right * MoveForce * -1, 0);
-        }
-        if (Input.GetKey(KeyCode.J))
+        if (Input.GetKey(KeyCode.Q))
         {
             m_Rigid.AddTorque(RotateForce);
         }
-        if (Input.GetKey(KeyCode.L))
+        if (Input.GetKey(KeyCode.E))
         {
             m_Rigid.AddTorque(-1 * RotateForce);
         }
+    }
+    void UpdatePullUI()
+    {
+        SkillImage.fillAmount = Mathf.Clamp01((Time.unscaledTime - LastPullTime) / PullCD);
     }
     private void FixedUpdate()
     {
         if (isDead) return;
         if (HP <= 0) StartCoroutine(Defeat());
+        UpdatePullUI();
         GetInputAndMove();
     }
     IEnumerator Defeat()
