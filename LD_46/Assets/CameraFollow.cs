@@ -8,13 +8,13 @@ public class CameraFollow : MonoBehaviour
     public float MinX = -10, MaxX = 10, MinY = -10, MaxY = 10;
     public float DistToMove = 1.5f;
     public Transform TargetTransform;
-    void Update()
+    void FixedUpdate()
     {
         var MoveDir = TargetTransform.position - transform.position;
         Vector3 newVector;
 
         if (Mathf.Abs(MoveDir.x) < DistToMove && Mathf.Abs(MoveDir.y) < DistToMove) return;
-        newVector = Vector3.Lerp(transform.position, TargetTransform.position, Time.deltaTime * 2);
+        newVector = Vector3.Lerp(transform.position, TargetTransform.position, Time.fixedDeltaTime * 2);
         //MoveDir.z = 0;
         //if (MoveDir.magnitude > FollowSpeed * Time.deltaTime)
         //{
