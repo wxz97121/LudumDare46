@@ -14,6 +14,10 @@ public class Player : SingletonBase<Player>
     public float RushTime = 1;
     private bool isRush = false;
     private bool isDead = false;
+    Rigidbody2D TrackerRigid;
+    public GameObject Explosion;
+    [HideInInspector]
+    static Vector2 SavedPos = new Vector2(0, 0);
     Vector2[] AllRush = new Vector2[8] { new Vector2(0, 1), new Vector2(0.5f * Gh2, 0.5f * Gh2), new Vector2(1, 0), new Vector2(0.5f * Gh2, -0.5f * Gh2), new Vector2(0, -1), new Vector2(-0.5f * Gh2, -0.5f * Gh2), new Vector2(-1, 0), new Vector2(-0.5f * Gh2, 0.5f * Gh2) };
     Vector2 FindRushDir(Vector2 InputDir)
     {
@@ -30,12 +34,19 @@ public class Player : SingletonBase<Player>
         }
         return AllRush[index];
     }
+
     private void Awake()
     {
+        Time.timeScale = 1f;
         m_Rigid = GetComponent<Rigidbody2D>();
+        m_Rigid.position = SavedController.Instance.NowPlayerPos();
+        TrackerRigid = GameObject.FindGameObjectWithTag("Tracker").GetComponent<Rigidbody2D>();
+        TrackerRigid.position = SavedController.Instance.NowTrackerPos();
+        TrackerRigid.rotation = SavedController.Instance.NowRotation();
     }
-    private void Update()
+    void FixedUpdate()
     {
+
         if (isDead) return;
         float y = Input.GetAxis("Vertical");
         float x = Input.GetAxis("Horizontal");
@@ -43,6 +54,7 @@ public class Player : SingletonBase<Player>
         if (!isRush)
         {
             m_Rigid.MovePosition(m_Rigid.position + new Vector2(x, y) * MoveForce);
+            /*
             if (Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.Joystick1Button0))
             {
 
@@ -51,16 +63,33 @@ public class Player : SingletonBase<Player>
                 StartCoroutine(Rush(new Vector2(x, y)));
                 //TODO: 特效
             }
+            */
         }
-        //m_Rigid.AddForce(new Vector2(x, y));
-
-        /*
-        if (Mathf.Abs(m_Rigid.velocity.x) > m_MaxSpeed && (m_Rigid.velocity.x * x > 0))
-            m_Rigid.AddForce(new Vector3());
-        //m_Rigidbody2D.velocity = new Vector2(move * m_MaxSpeed, m_Rigidbody2D.velocity.y);
-        else m_Rigid.AddForce(new Vector3(x, 0, 0) * MoveForce);
-        */
     }
+    void Update()
+    {
+        float y = Input.GetAxis("Vertical");
+        float x = Input.GetAxis("Horizontal");
+        if (!isRush && !isDead)
+        {
+            if (Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.Joystick1Button0))
+            {
+
+                var RushDir = FindRushDir(new Vector2(x, y));
+                m_Rigid.velocity = new Vector2(0, 0);
+                StartCoroutine(Rush(new Vector2(x, y)));
+            }
+        }
+    }
+    //m_Rigid.AddForce(new Vector2(x, y));
+
+    /*
+    if (Mathf.Abs(m_Rigid.velocity.x) > m_MaxSpeed && (m_Rigid.velocity.x * x > 0))
+        m_Rigid.AddForce(new Vector3());
+    //m_Rigidbody2D.velocity = new Vector2(move * m_MaxSpeed, m_Rigidbody2D.velocity.y);
+    else m_Rigid.AddForce(new Vector3(x, 0, 0) * MoveForce);
+    */
+
     float LastRushTime;
     IEnumerator Rush(Vector2 Dir)
     {
@@ -75,11 +104,13 @@ public class Player : SingletonBase<Player>
         }
         isRush = false;
     }
-    IEnumerator Defeat()
+    public IEnumerator Defeat()
     {
         isDead = true;
-        Time.timeScale = 0.75f;
+        Time.timeScale = 0.6f;
+        TrackerRigid.GetComponent<Renderer>().enabled = false;
+        Instantiate(Explosion, TrackerRigid.transform);
         yield return new WaitForSeconds(1.75f);
-        SceneManager.LoadScene(0);
+        SceneManager.LoadScene(1);
     }
 }

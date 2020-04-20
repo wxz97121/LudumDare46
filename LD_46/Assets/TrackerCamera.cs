@@ -22,7 +22,7 @@ public class TrackerCamera : MonoBehaviour
         float Alpha = Mathf.Clamp01(((Player.position - Enemy.position).magnitude - MinDist) / MaxDist);
         m_Camera.fieldOfView = Mathf.Lerp(60, 90, Alpha);
         if (Mathf.Abs(MoveDir.x) < DistToMove && Mathf.Abs(MoveDir.y) < DistToMove) return;
-        newVector = Vector3.Lerp(transform.position, TargetPos, Time.fixedDeltaTime * 2);
+        newVector = Vector3.Lerp(transform.position, TargetPos, Time.fixedDeltaTime * FollowSpeed);
         
 
         //MoveDir.z = 0;

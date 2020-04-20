@@ -5,6 +5,10 @@ TagManager:
   serializedVersion: 2
   tags:
   - it
+  - Die
+  - Tracker
+  - Key
+  - Bullet
   layers:
   - Default
   - TransparentFX
